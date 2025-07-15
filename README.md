@@ -38,29 +38,6 @@ It supports secure user registration, login, email verification, password reset,
 
 ---
 
-## 🗂️ Project Structure
-
-auth-microservice-project/
-├── backend/
-│ ├── controllers/
-│ ├── middleware/
-│ ├── models/
-│ ├── routes/
-│ ├── utils/
-│ ├── .env.example
-│ ├── server.js
-│ └── package.json
-│
-├── frontend/
-│ ├── src/
-│ ├── public/
-│ ├── .env.example
-│ ├── vite.config.js
-│ └── package.json
-
-
----
-
 ## 🔐 .env Configuration
 
 Create a `.env` file in `backend/` using:
@@ -87,9 +64,6 @@ Runs server at http://localhost:5000
 MongoDB and email configs must be correctly set
 
 🎨 Frontend Setup
-bash
-Copy
-Edit
 cd frontend
 npm install
 npm run dev

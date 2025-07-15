@@ -8,16 +8,16 @@ It supports secure user registration, login, email verification, password reset,
 
 ## 🚀 Features
 
-✅ Secure user registration with email verification  
-✅ JWT-based login with access + refresh tokens  
-✅ Refresh token rotation + secure cookie storage  
-✅ Forgot/Reset password via email  
-✅ Axios auto-refresh on 401 errors  
-✅ Protected routes (user, admin)  
-✅ Role-based access control  
-✅ Logout with token invalidation  
-✅ React frontend with routing and localStorage  
-✅ Fully modular codebase and ready for deployment
+- ✅ Secure user registration with email verification  
+- ✅ JWT-based login with access + refresh tokens  
+- ✅ Refresh token rotation + secure cookie storage  
+- ✅ Forgot/Reset password via email  
+- ✅ Axios auto-refresh on 401 errors  
+- ✅ Protected routes (user, admin)  
+- ✅ Role-based access control  
+- ✅ Logout with token invalidation  
+- ✅ React frontend with routing and localStorage  
+- ✅ Fully modular codebase and ready for deployment
 
 ---
 
@@ -38,9 +38,9 @@ It supports secure user registration, login, email verification, password reset,
 
 ---
 
-## 🔐 .env Configuration
+## 🔐 `.env` Configuration
 
-Create a `.env` file in `backend/` using:
+Create a `.env` file in your `backend/` directory:
 
 ```env
 PORT=5000
@@ -51,31 +51,44 @@ BASE_URL=http://localhost:5000
 REDIRECT_BASE_URL=http://localhost:5173
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_email_password_or_app_password
+````
 
 ---
 
-💻 Getting Started
-🔧 Backend Setup
+## 💻 Getting Started
 
+### 🔧 Backend Setup
+
+```bash
 cd backend
 npm install
 npm run dev
+```
 
-Runs server at http://localhost:5000
+Runs server at: `http://localhost:5000`
+Make sure MongoDB and email configs are correctly set.
 
-MongoDB and email configs must be correctly set
+---
 
-🎨 Frontend Setup
+### 🎨 Frontend Setup
+
+```bash
 cd frontend
 npm install
 npm run dev
-Runs client at http://localhost:5173
+```
 
-Make sure CORS and proxy settings allow backend communication
+Runs client at: `http://localhost:5173`
+Ensure CORS and proxy settings allow frontend-backend communication.
 
-🧠 Future Improvements
-Google/GitHub social login (OAuth)
-Multi-Factor Authentication (MFA)
-Admin dashboard with user management
-Rate limiting with Redis
-Deployment
+---
+
+## 🧠 Future Improvements
+
+* 🔒 Google/GitHub social login (OAuth)
+* 🔐 Multi-Factor Authentication (MFA)
+* 🛠️ Admin dashboard with user management
+* 🧱 Rate limiting with Redis
+* 🚀 Deployment (Render/Netlify/Vercel)
+
+---

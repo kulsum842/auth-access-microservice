@@ -1,0 +1,213 @@
+What is this project about?
+You're creating a microservice that handles:
+- User authentication (logging in with a username/email and password)
+- Access control (deciding who can access what, based on roles or permissions)
+This microservice can later be plugged into any bigger system—like a web app, mobile app, or enterprise platform.
+
+What exactly will our microservice do?
+We want to build a simple but real-world capable microservice with:
+- User Registration
+- User Login (Authentication)
+- JWT Token Generation
+- Password Hashing and Security
+- Role-based Access Control (RBAC)
+
+Later, we can add:
+- Password reset
+- OAuth login (like Google)
+- Account verification
+
+-------------------------
+
+I set up the Express server and connected it to MongoDB using Mongoose. I created an index.js file as the main entry point and used dotenv to manage environment variables securely through a .env file. I also added a separate db.js file inside a config folder to handle the MongoDB connection logic. Then, I installed the necessary dependencies (express, mongoose, dotenv, and nodemon for development) and configured a dev script in package.json to run the server using nodemon. Finally, I tested the setup by running the server and confirming it responds at http://localhost:5000.
+
+I designed a Mongoose user model with fields for name, email, hashed password, and role. During registration, I first check for duplicates, then hash the password using bcrypt before saving. I structured my code with routes and controllers to follow clean, modular architecture.
+
+What is JWT?
+JWT (JSON Web Token) is a secure way to transmit information between two parties. It’s:
+Stateless (you don’t store sessions on the server)
+Made of three parts:
+Header: Algorithm + Type
+Payload: Data (like userId, role)
+Signature: Created using your secret key
+This token will be sent by the client in the header for every protected API request going forward.
+
+I implemented user login with proper password validation using bcrypt. On successful login, the server generates a JWT containing the user ID and role. This token is then returned to the client and used for authorizing protected routes
+
+What is Middleware?
+Middleware in Express is a function that runs before a request reaches your actual route handler. We’ll use it to:
+Check if the user has sent a valid token
+Decode the token and attach user info to the request
+
+I implemented route protection using JWT-based middleware. It validates the token and extracts user info for secured endpoints. I also built a role-based authorization layer to restrict access to specific routes based on user roles like ‘admin’ and ‘user’.
+
+
+****************
+I built a modular authentication and access control microservice using Node.js, Express, and MongoDB. It supports user registration and login with secure password hashing (using bcrypt). Upon login, it generates a JWT token which is used to protect sensitive routes. I also implemented role-based access control via custom middleware, so routes like /admin are accessible only to users with the appropriate role. All sensitive data like JWT secrets and database URIs are stored securely in environment variables. The project is structured with separation of concerns using folders for models, controllers, routes, and middleware
+****************
+
+this was abaic mvp. now lets add more features
+
+---
+1.
+After a user registers:
+We generate a verification token
+Send an email with a verification link (e.g. http://localhost:5000/api/verify-email?token=xyz)
+When user clicks the link, their account becomes verified
+
+Nodemailer is a Node.js module that allows you to send emails directly from your backend.
+We’ll use it to:
+Send a verification link when a user registers
+Use Gmail or any SMTP provider to send the email
+
+When the user clicks:
+http://localhost:5000/api/verify-email?token=abc123...
+The backend should:
+Look for a user with that verificationToken
+Mark them as verified (isVerified: true)
+Clear the token (so it can’t be reused)
+
+so far in this step
+I implemented email verification by generating a secure token on registration, saving it in the DB, and sending it via email using Nodemailer. When the user clicks the link, the backend verifies the token and marks the account as verified. I also prevent login for unverified users.
+
+After user registration, the system generates a unique verification token and sends it via email using Nodemailer. The user must verify their email through a link, which updates their isVerified status in the database. The system blocks login attempts from unverified users, enhancing security and trust.
+
+---
+2. 
+Forgot Password
+Allow users to:
+Request a password reset by entering their email
+Get a reset link via email with a secure token
+Click the link → enter new password
+Token gets validated → password is updated
+
+STEP 1: Request Password Reset (/forgot-password)
+User enters their email
+We:
+Generate a reset token (random string)
+Save it to the user record with an expiration time
+Send a reset link to their email
+
+STEP 2: Reset Password (/reset-password?token=xyz)
+User clicks the link and sends:
+New password
+Token (in URL)
+We:
+Validate the token
+Hash and update the new password
+Clear the token and expiry
+
+---
+3. 
+Refresh tokens
+Right now, your JWT token expires in 1 hour. After that:
+The user gets logged out
+They have to manually log in again
+To avoid this, we’ll add refresh tokens, so users stay logged in securely without re-authenticating every hour.
+
+Flow We’ll Build:
+1. When user logs in, we return:
+Access Token (JWT) — valid for 15 mins
+Refresh Token — valid for 7 days
+2. Store refresh token in DB (optional but safer)
+3. Create an API: POST /refresh-token to:
+Verify refresh token
+Issue new access token
+4. Logout will invalidate refresh token
+
+We'll do this in 3 steps:
+Update Login: generate + return refresh token
+Create /refresh-token route
+Optional: Store refresh token in DB for tracking
+
+we will update the loginUser function to:
+Generate two tokens:
+✅ Access Token – short-lived (e.g., 15 mins)
+🆕 Refresh Token – longer-lived (e.g., 7 days)
+Send both in the response
+
+-----------------
+now behore moving ahead, let us put some proper security features
+
+1: Store Refresh Tokens Securely in the Database
+Why Store Refresh Tokens?
+Currently, refresh tokens are:
+Sent to the user
+But not stored anywhere on the server
+That means:
+You can’t track sessions
+You can’t log the user out
+If a token is stolen, you can’t block it
+
+What We’ll Do Now
+Update User model to store the refresh token
+Update login controller to save the refresh token in DB
+Update /refresh-token route to verify against DB
+Prepare for logout logic (will do that in next step)
+
+2: Implement Secure Logout Functionality 
+Why Logout Matters in Token-Based Systems
+In token-based authentication (like with JWTs), we don’t maintain a session on the server.
+So to log out a user securely, we must:
+Invalidate the refresh token by removing it from the database.
+Optionally, blacklist the token (if stored in Redis or in-memory).
+
+Create a POST /api/logout route that:
+Accepts the refresh token
+Verifies it
+Clears it from the database
+Confirms the user is logged out
+
+3: Add Rate Limiting (Prevent Brute Force Attacks)
+Why It's Important:
+Rate limiting protects your backend from:
+Login brute-force attacks 
+Abuse of endpoints (e.g. /login, /forgot-password)
+Denial-of-service (DoS) attempts
+
+We’ll Use: express-rate-limit Middleware
+Features:
+Set request limits per IP
+Define time window (e.g., 5 login attempts every 15 mins)
+Auto-block abusive requests temporarily
+
+4: Add Helmet Middleware (Set Secure HTTP Headers)
+Why Helmet?
+Helmet helps secure your Express app by setting various HTTP headers to protect from:
+Cross-Site Scripting (XSS)
+Clickjacking
+MIME-type sniffing
+Other common web vulnerabilities
+It’s a must-have middleware in production-ready apps.
+
+5: Add CORS Control (Cross-Origin Resource Sharing)
+Why CORS?
+CORS allows your backend to decide who can talk to it (i.e., which frontend URLs are allowed).
+By default, any origin can access your APIs — that's risky in production.
+So we’ll:
+Allow only your frontend domain (e.g., http://localhost:3000)
+Deny all others by default
+
+6: Add Input Sanitization
+(Prevent XSS & NoSQL Injection)
+Why?
+Even if you validate input, an attacker can still:
+Inject HTML/JS into inputs → Cross-Site Scripting (XSS)
+Inject MongoDB query operators like "$gt": "" → NoSQL Injection
+
+7: Store Refresh Tokens Securely in Database
+Why?
+Currently:
+You generate a refresh token on login 
+But you're not storing it anywhere
+That means:
+You can't verify if a refresh token is legit
+You can't revoke/logout specific tokens (e.g., in case of theft)
+So, we’ll:
+Save the refresh token in the user’s MongoDB record
+Check it on refresh & logout
+Revoke it by deleting on logout
+
+
+
+

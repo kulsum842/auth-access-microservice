@@ -1,0 +1,91 @@
+api.js
+
+| Concept                     | Description                                                                                           |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Axios instance**          | Reusable axios config for consistent baseURL, headers, etc.                                           |
+| **Interceptors (request)**  | Injects the `Authorization` header with `Bearer <access_token>` automatically                         |
+| **Interceptors (response)** | On `401 Unauthorized`, tries to use the refresh token to get a new access token and retry the request |
+| **Retry logic**             | The `_retry` flag ensures we don’t retry an infinite loop if refresh token fails                      |
+| **Graceful fallback**       | If refresh also fails, clears localStorage and redirects to login                                     |
+
+---
+
+App.jsx
+
+| Concept                      | Explanation                                         |
+| ---------------------------- | --------------------------------------------------- |
+| `ProtectedRoute` wrapper     | Protects routes from being accessed without auth    |
+| `Navigate` from React Router | Redirects users who are not authorized              |
+| `useEffect` + `localStorage` | Reads token and role info to maintain auth status   |
+| `requiredRole` prop          | Allows RBAC (Role Based Access Control) in frontend |
+
+---
+
+Dashboard.jsx 
+
+| Concept                     | Explanation                                                          |
+| --------------------------- | -------------------------------------------------------------------- |
+| **`useEffect()`**           | Automatically fetches user data once the component mounts.           |
+| **`API.get('/me')`**        | Calls backend `/me` route to retrieve authenticated user info.       |
+| **LocalStorage Usage**      | Stores and removes auth tokens and user role for session continuity. |
+| **Error Handling**          | Gracefully handles network or auth-related errors.                   |
+| **Programmatic Navigation** | Uses `navigate()` to redirect users based on logic.                  |
+
+---
+
+Login.jsx
+
+| Concept                      | Explanation                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Axios POST Login**         | Sends email/password to `/login` endpoint                                                              |
+| **Access + Refresh Tokens**  | Saved in `localStorage` for reuse in API requests                                                      |
+| **Fetching Role (Optional)** | Calls `/me` after login to get role and store it for conditional routing (e.g., admin/user dashboards) |
+| **Client-side Validation**   | Password length check and required fields prevent blank submissions                                    |
+| **Redirect**                 | Navigates to dashboard only on successful login                                                        |
+
+---
+
+Register.jsx 
+
+| Concept                    | Explanation                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| **Client-side Validation** | Prevents empty inputs, ensures email/password format before API call                   |
+| **Backend Integration**    | Hits `/register` endpoint and handles success or error response gracefully             |
+| **Post-Registration UX**   | Feedback shown, form reset, optional auto-redirect to login                            |
+| **Security Awareness**     | Never stores password or token here; relies on backend handling and email verification |
+
+---
+
+ForgotPassword.jsx 
+
+| Concept                 | Explanation                                                             |
+| ----------------------- | ----------------------------------------------------------------------- |
+| **Form Validation**     | Prevents empty or invalid email submissions                             |
+| **Backend Integration** | Calls `/forgot-password` with proper JSON body and handles all outcomes |
+| **User Feedback Loop**  | Shows clear messages for both success and error                         |
+| **Security Handling**   | Avoids revealing if the email exists in the system for privacy          |
+
+---
+
+ResetPassword.jsx 
+
+| Concept                 | Explanation                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| **Token Validation**    | Token from URL (`useSearchParams`) is checked before allowing password reset |
+| **Form Security**       | Basic password validation client-side before submitting                      |
+| **Backend Integration** | Hits `/reset-password?token=...` endpoint with new password                  |
+| **User Feedback UX**    | Shows success message and redirect button after reset                        |
+
+---
+
+VerifyEmail.jsx 
+
+| Concept                  | Explanation                                                                 |
+| ------------------------ | --------------------------------------------------------------------------- |
+| **Query Params**         | Extracted with `useSearchParams()` from React Router                        |
+| **Verification Status**  | Matches backend-redirected `?status=value` logic                            |
+| **UX Navigation**        | Adds a button to navigate to login only when verification succeeds          |
+| **Conditional Feedback** | Message and styling change based on verification result (`success`/`error`) |
+
+---
+
